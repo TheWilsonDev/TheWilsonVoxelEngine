@@ -20,6 +20,8 @@ Window::Window(int width, int height, const char* title) {
         exit(EXIT_FAILURE);
     }
 
+    glfwSetKeyCallback(window, Window::keyCallback);
+
     glfwMakeContextCurrent(window);
     glewExperimental = true;
 
@@ -29,10 +31,25 @@ Window::Window(int width, int height, const char* title) {
     }
 }
 
+bool Window::shouldClose() {
+    return glfwWindowShouldClose(window);
+}
+
 void Window::run() {
-    while (!glfwWindowShouldClose(window)) {
+    while (!Window::shouldClose()) {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glfwSwapBuffers(window);
         glfwPollEvents();
+    }
+}
+
+void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
+    }
+
+    if (action == GLFW_PRESS) {
+        std::cout << "Key Pressed: " << key << std::endl;
     }
 }
 
