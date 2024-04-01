@@ -1,9 +1,12 @@
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-#include <glm.hpp>
+#include "Engine.h"
 #include <iostream>
 
 int main()
 {
-    std::cout << "Hello World!\n";
+    std::cout << "TheWilsonDev presents TheWilsonVoxelEngine!\n";
+
+    Engine engine;
+    engine.run();
+
+    return 0;
 }
