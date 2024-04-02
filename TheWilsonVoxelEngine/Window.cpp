@@ -4,7 +4,7 @@
 #include <iostream>
 #include "Window.h"
 
-Window::Window(int width, int height, const char* title) {
+Window::Window(int width, int height, const char* title) : width(width), height(height) {
     if (!glfwInit()) {
         std::cerr << "Failed to initialize GLFW" << std::endl;
         exit(EXIT_FAILURE);
@@ -24,6 +24,7 @@ Window::Window(int width, int height, const char* title) {
 
     glfwMakeContextCurrent(window);
     glewExperimental = true;
+    glEnable(GL_DEPTH_TEST);
 
     if (glewInit() != GLEW_OK) {
         std::cerr << "Failed to initialize GLEW" << std::endl;
@@ -35,22 +36,28 @@ bool Window::shouldClose() {
     return glfwWindowShouldClose(window);
 }
 
+void Window::clearContext() {
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
 void Window::run() {
-    while (!Window::shouldClose()) {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-    }
+    glfwSwapBuffers(window);
+    glfwPollEvents();
 }
 
 void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
-    }
-
     if (action == GLFW_PRESS) {
         std::cout << "Key Pressed: " << key << std::endl;
     }
+}
+
+int Window::getWidth() const {
+    return width;
+}
+
+int Window::getHeight() const {
+    return height;
 }
 
 Window::~Window() {

@@ -5,23 +5,28 @@
 
 class Camera {
 public:
-    Camera(const glm::vec3& position, const glm::vec3& up, float yaw, float pitch, float fov, float aspectRatio, float nearPlane, float farPlane);
+    Camera(const glm::vec3& position, const glm::vec3& up, float yaw, float pitch, float fov, float aspectRatio, float nearPlane, float farPlane, float sensitivity);
 
-    glm::vec3 getPosition() const;
-    void setPosition(const glm::vec3& position);
+    glm::vec3 getPosition() const { return position; }
+    void setPosition(const glm::vec3& position) { this->position = position; }
 
-    glm::vec3 getFront() const;
-    glm::vec3 getUp() const;
-    glm::vec3 getRight() const;
+    glm::vec3 getFront() const { return front; }
+    glm::vec3 getUp() const { return up; }
+    glm::vec3 getRight() const { return right; }
 
-    float getYaw() const;
+    float getYaw() const { return yaw; }
     void setYaw(float yaw);
 
-    float getPitch() const;
+    float getPitch() const { return pitch; }
     void setPitch(float pitch);
 
-    glm::mat4 getViewMatrix() const;
-    glm::mat4 getProjectionMatrix() const;
+    glm::mat4 getViewMatrix() const { return glm::lookAt(position, position + front, up); }
+    glm::mat4 getProjectionMatrix() const { return glm::perspective(glm::radians(fov), aspectRatio, nearPlane, farPlane); }
+
+    float getSensitivity() const { return sensitivity; }
+    void setSensitivity(float sensitivity) { this->sensitivity = sensitivity;  }
+
+    void processCamMouseMovement(float xoffset, float yoffset, bool constrainPitch);
 
 private:
     glm::vec3 position;
@@ -37,6 +42,8 @@ private:
     float aspectRatio;
     float nearPlane;
     float farPlane;
+
+    float sensitivity;
 
     void updateCameraVectors();
 };
