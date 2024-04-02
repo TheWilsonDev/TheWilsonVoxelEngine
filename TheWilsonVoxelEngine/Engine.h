@@ -3,7 +3,10 @@
 #include "Window.h"
 #include "ImGuiManager.h"
 #include "Camera.h"
+#include "Voxel.h"
+#include "FastNoiseLite.h"
 #include <vector>
+#include <memory>
 
 class Engine
 {
@@ -18,37 +21,25 @@ public:
 	void renderImGui();
 	void toggleCursor();
 	void toggleImGui();
+	void toggleWireFrame();
+	void generateTerrain();
+	void createVoxel(int x, int y, int z);
 private:
 	Window* mainWindow;
 	Camera* mainCamera;
 	ImGuiManager* imguiManager;
 	ShaderCompiler* shaderProgram;
+	std::vector<std::unique_ptr<Voxel>> terrainVoxels;
+	FastNoiseLite noise;
 	double lastX, lastY;
 	bool firstMouse;
-	double deltaTime;
-	double lastFrameTime;
-	unsigned int VBO, VAO;
+	double deltaTime = 0.0;
+	double lastFrameTime = 0.0;
+	float fpsHistory[100] = {};
+	int currentFrame = 0;
+	int historySize = sizeof(fpsHistory) / sizeof(fpsHistory[0]);
 	bool cursorEnabled = false;
 	bool imguiEnabled = true;
-	const std::vector<float> vertices = {
-		// Positions          
-		-1.0f, -1.0f, -1.0f,  1.0f, -1.0f, -1.0f,  1.0f,  1.0f, -1.0f, // Back face
-		-1.0f, -1.0f, -1.0f,  1.0f,  1.0f, -1.0f, -1.0f,  1.0f, -1.0f, // Back face
-
-		-1.0f, -1.0f,  1.0f,  1.0f, -1.0f,  1.0f,  1.0f,  1.0f,  1.0f, // Front face
-		-1.0f, -1.0f,  1.0f,  1.0f,  1.0f,  1.0f, -1.0f,  1.0f,  1.0f, // Front face
-
-		-1.0f,  1.0f,  1.0f,  1.0f,  1.0f,  1.0f,  1.0f,  1.0f, -1.0f, // Top face
-		-1.0f,  1.0f,  1.0f,  1.0f,  1.0f, -1.0f, -1.0f,  1.0f, -1.0f, // Top face
-
-		-1.0f, -1.0f,  1.0f,  1.0f, -1.0f,  1.0f,  1.0f, -1.0f, -1.0f, // Bottom face
-		-1.0f, -1.0f,  1.0f,  1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, // Bottom face
-
-		 1.0f, -1.0f, -1.0f,  1.0f, -1.0f,  1.0f,  1.0f,  1.0f,  1.0f, // Right face
-		 1.0f, -1.0f, -1.0f,  1.0f,  1.0f,  1.0f,  1.0f,  1.0f, -1.0f, // Right face
-
-		-1.0f, -1.0f, -1.0f, -1.0f, -1.0f,  1.0f, -1.0f,  1.0f,  1.0f, // Left face
-		-1.0f, -1.0f, -1.0f, -1.0f,  1.0f,  1.0f, -1.0f,  1.0f, -1.0f  // Left face
-	};
+	bool wireframeEnabled = false;
 };
 

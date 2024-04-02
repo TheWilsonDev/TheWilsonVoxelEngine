@@ -8,10 +8,8 @@
 Engine::Engine() {
 	// Engine Constructor
     mainWindow = new Window(1500, 900, "TheWilsonVoxelEngine");
-    deltaTime = 0.0;
-    lastFrameTime = 0.0;
     mainCamera = new Camera(
-        glm::vec3(0.0f, 0.0f, 3.0f), // Position
+        glm::vec3(0.0f, 1.0f, 3.0f), // Position
         glm::vec3(0.0f, 1.0f, 0.0f), // Up
         -90.0f,                      // Yaw
         0.0f,                        // Pitch
@@ -26,7 +24,6 @@ Engine::Engine() {
     firstMouse = true;
     lastX = 1500 / 2.0;
     lastY = 900 / 2.0;
-
 
     glfwSetWindowUserPointer(mainWindow->getGLFWwindow(), this);
 
@@ -44,27 +41,36 @@ Engine::Engine() {
 
     glViewport(0, 0, mainWindow->getWidth(), mainWindow->getHeight());
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
-
-    // Position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-
     shaderProgram = new ShaderCompiler("vertex_shader.glsl", "fragment_shader.glsl");
 
+    generateTerrain();
 }
 
+void Engine::generateTerrain() {
+    noise.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
+    noise.SetFrequency(0.01f);
+
+    int terrainWidth = 16;
+    int terrainDepth = 16;
+    float heightMultiplier = 20.0f;
+
+    for (int x = 0; x < terrainWidth; ++x) {
+        for (int z = 0; z < terrainDepth; ++z) {
+            float height = noise.GetNoise((float)x, (float)z) * heightMultiplier;
+            int y = std::round(height);
+            createVoxel(x, y, z);
+        }
+    }
+
+    //std::cout << "Terrain Voxels Count: " << terrainVoxels.size() << std::endl;
+}
+
+void Engine::createVoxel(int x, int y, int z) {
+    auto voxel = std::make_unique<Voxel>();
+    voxel->setPosition(glm::vec3(x, y, z));
+    voxel->init();
+    terrainVoxels.push_back(std::move(voxel));
+}
 
 void Engine::run() {
     lastFrameTime = glfwGetTime();
@@ -76,20 +82,20 @@ void Engine::run() {
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glm::mat4 model = glm::mat4(1.0f); 
+        glm::mat4 model = glm::mat4(1.0f);
         glm::mat4 view = mainCamera->getViewMatrix();
         glm::mat4 projection = glm::perspective(glm::radians(45.0f), 1500.0f / 900.0f, 0.1f, 100.0f);
-
 
         shaderProgram->use();
         shaderProgram->setMat4("model", model);
         shaderProgram->setMat4("view", view);
         shaderProgram->setMat4("projection", projection);
 
-        glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-
         processInput();
+
+        for (auto& voxel : terrainVoxels) {
+            voxel->draw(*shaderProgram);
+        }
 
         renderImGui();
 
@@ -109,25 +115,34 @@ void Engine::renderImGui() {
     ImGui::Text("Camera Position: X: %.2f Y: %.2f Z: %.2f", mainCamera->getPosition().x, mainCamera->getPosition().y, mainCamera->getPosition().z);
     ImGui::Text("Camera Front: X: %.2f Y: %.2f Z: %.2f", mainCamera->getFront().x, mainCamera->getFront().y, mainCamera->getFront().z);
     ImGui::Text("Camera Up: X: %.2f Y: %.2f Z: %.2f", mainCamera->getUp().x, mainCamera->getUp().y, mainCamera->getUp().z);
+
     float sensitivity = mainCamera->getSensitivity();
     if (ImGui::SliderFloat("Camera Sensitivity", &sensitivity, 0.1f, 5.0f)) {
         mainCamera->setSensitivity(sensitivity);
     }
+
     ImGui::Text("Yaw: %.2f, Pitch: %.2f", mainCamera->getYaw(), mainCamera->getPitch());
     ImGui::Separator();
+
+    float currentFPS = 1.0f / deltaTime;
+    fpsHistory[currentFrame % historySize] = currentFPS;
+    currentFrame++;
+
     ImGui::Text("Frame Time: %.4f seconds (%.2f ms)", deltaTime, deltaTime * 1000.0);
-    ImGui::Text("FPS: %.2f", 1.0f / deltaTime);
+    ImGui::Text("FPS: %.2f", currentFPS);
+    ImGui::PlotLines("FPS Graph", fpsHistory, historySize, currentFrame % historySize, nullptr, 0.0f, FLT_MAX, ImVec2(0, 80));
 
     ImGui::End();
 
     imguiManager->End();
 }
 
-
 void Engine::processInput() {
     GLFWwindow* window = mainWindow->getGLFWwindow();
+
     static bool escPressedLastFrame = false;
     static bool tabPressedLastFrame = false;
+    static bool qPressedLastFrame = false;
 
     int escState = glfwGetKey(window, GLFW_KEY_ESCAPE);
     if (escState == GLFW_PRESS && !escPressedLastFrame) {
@@ -141,7 +156,13 @@ void Engine::processInput() {
     }
     tabPressedLastFrame = (tabState == GLFW_PRESS);
 
-    float cameraSpeed = 2.5f * deltaTime;
+    int qState = glfwGetKey(window, GLFW_KEY_Q);
+    if (qState == GLFW_PRESS && !qPressedLastFrame) {
+        toggleWireFrame();
+    }
+    qPressedLastFrame = (qState == GLFW_PRESS);
+
+    float cameraSpeed = 10.0f * deltaTime;
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         mainCamera->setPosition(mainCamera->getPosition() + cameraSpeed * mainCamera->getFront());
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -150,6 +171,10 @@ void Engine::processInput() {
         mainCamera->setPosition(mainCamera->getPosition() - glm::normalize(glm::cross(mainCamera->getFront(), mainCamera->getUp())) * cameraSpeed);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         mainCamera->setPosition(mainCamera->getPosition() + glm::normalize(glm::cross(mainCamera->getFront(), mainCamera->getUp())) * cameraSpeed);
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        mainCamera->setPosition(mainCamera->getPosition() + glm::vec3(0, cameraSpeed, 0));
+    if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS)
+        mainCamera->setPosition(mainCamera->getPosition() - glm::vec3(0, cameraSpeed, 0));
 }
 
 void Engine::processMouseMovement(double xpos, double ypos) {
@@ -162,7 +187,7 @@ void Engine::processMouseMovement(double xpos, double ypos) {
     }
 
     double xoffset = xpos - lastX;
-    double yoffset = lastY - ypos; 
+    double yoffset = lastY - ypos;
     lastX = xpos;
     lastY = ypos;
 
@@ -186,6 +211,16 @@ void Engine::toggleCursor() {
 
 void Engine::toggleImGui() {
     imguiEnabled = !imguiEnabled;
+}
+
+void Engine::toggleWireFrame() {
+    wireframeEnabled = !wireframeEnabled;
+    if (wireframeEnabled) {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    }
+    else {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
 }
 
 Engine::~Engine() {
