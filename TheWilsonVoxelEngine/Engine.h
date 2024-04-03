@@ -7,6 +7,10 @@
 #include "Chunk.h"
 #include "FastNoiseLite.h"
 #include <vector>
+#include <vec2.hpp>
+#include "utils.h"
+#include <unordered_map>
+#include <utility>
 #include <memory>
 
 class Engine
@@ -20,12 +24,15 @@ public:
 	void processMouseMovement(double xpos, double ypos);
 	void processMouseButton(int button, int action, int mods);
 	void processScroll(double xoffset, double yoffset);
+	glm::ivec2 getPlayerChunkCoordinates();
+	std::vector<glm::ivec2> calculateRequiredChunksAround(const glm::ivec2& chunkCoord, int radius);
 	void renderImGui();
 	void toggleCursor();
 	void toggleImGui();
 	void toggleWireFrame();
-	void generateTerrain();
 	void createVoxel(int x, int y, int z);
+	void updateChunksBasedOnPlayerPosition();
+
 private:
 	Window* mainWindow;
 	Camera* mainCamera;
@@ -34,6 +41,7 @@ private:
 	Chunk* chunkTest;
 	std::vector<std::unique_ptr<Voxel>> terrainVoxels;
 	FastNoiseLite noise;
+	std::unordered_map<glm::ivec2, std::unique_ptr<Chunk>, IVec2Hash, IVec2Equal> activeChunks;
 	double lastX, lastY;
 	bool firstMouse;
 	double deltaTime = 0.0;

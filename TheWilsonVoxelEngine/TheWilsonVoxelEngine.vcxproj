@@ -177,6 +177,7 @@
     <ClInclude Include="imgui\imstb_textedit.h" />
     <ClInclude Include="imgui\imstb_truetype.h" />
     <ClInclude Include="ShaderCompiler.h" />
+    <ClInclude Include="Utils.h" />
     <ClInclude Include="Voxel.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>

@@ -3,12 +3,11 @@
 #include <iostream>
 
 
-Chunk::Chunk() : chunkSize(1000) {
+Chunk::Chunk() : chunkSize(16) {
 	// Chunk Constructor
     voxel = new Voxel();
     voxelVertices = voxel->getVertices();
     setupMesh();
-    
 }
 
 Chunk::~Chunk() {
@@ -56,6 +55,33 @@ void Chunk::generateChunk() {
     glBufferData(GL_ARRAY_BUFFER, instancePositions.size() * sizeof(glm::vec3), instancePositions.data(), GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
+
+void Chunk::generateChunkAt(const glm::ivec2& chunkCoord) {
+    instancePositions.clear();
+
+    int startX = chunkCoord.x * chunkSize;
+    int startZ = chunkCoord.y * chunkSize;
+
+    noise.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
+    noise.SetFrequency(0.01f);
+
+    for (int x = 0; x < chunkSize; ++x) {
+        for (int z = 0; z < chunkSize; ++z) {
+            int worldX = startX + x;
+            int worldZ = startZ + z;
+
+            float height = noise.GetNoise(static_cast<float>(worldX), static_cast<float>(worldZ)) * 20.0f;
+            int worldY = std::round(height);
+
+            instancePositions.emplace_back(worldX, worldY, worldZ);
+        }
+    }
+
+    glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+    glBufferData(GL_ARRAY_BUFFER, instancePositions.size() * sizeof(glm::vec3), instancePositions.data(), GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
 
 void Chunk::render(ShaderCompiler* shaderProgram) {
     shaderProgram->use();

@@ -52,19 +52,38 @@ Engine::Engine() {
     chunkTest->generateChunk();
 }
 
-void Engine::generateTerrain() {
-    noise.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
-    noise.SetFrequency(0.01f);
+glm::ivec2 Engine::getPlayerChunkCoordinates() {
+    return glm::ivec2(mainCamera->getPosition().x / 16, mainCamera->getPosition().z / 16);
+}
 
-    int terrainWidth = 100;
-    int terrainDepth = 100;
-    float heightMultiplier = 20.0f;
+std::vector<glm::ivec2> Engine::calculateRequiredChunksAround(const glm::ivec2& chunkCoord, int radius) {
+    std::vector<glm::ivec2> requiredChunks;
+    for (int dx = -radius; dx <= radius; ++dx) {
+        for (int dz = -radius; dz <= radius; ++dz) {
+            requiredChunks.push_back(glm::ivec2(chunkCoord.x + dx, chunkCoord.y + dz));
+        }
+    }
+    return requiredChunks;
+}
 
-    for (int x = 0; x < terrainWidth; ++x) {
-        for (int z = 0; z < terrainDepth; ++z) {
-            float height = noise.GetNoise((float)x, (float)z) * heightMultiplier;
-            int y = std::floor(height);
-            createVoxel(x, y, z);
+void Engine::updateChunksBasedOnPlayerPosition() {
+    glm::ivec2 currentPlayerChunk = getPlayerChunkCoordinates();
+    std::vector<glm::ivec2> requiredChunks = calculateRequiredChunksAround(currentPlayerChunk, 6);
+
+    for (const auto& chunkCoords : requiredChunks) {
+        if (activeChunks.find(chunkCoords) == activeChunks.end()) {
+            auto newChunk = std::make_unique<Chunk>();
+            newChunk->generateChunkAt(chunkCoords);
+            activeChunks[chunkCoords] = std::move(newChunk);
+        }
+    }
+
+    for (auto it = activeChunks.begin(); it != activeChunks.end(); ) {
+        if (std::find(requiredChunks.begin(), requiredChunks.end(), it->first) == requiredChunks.end()) {
+            it = activeChunks.erase(it);
+        }
+        else {
+            ++it;
         }
     }
 }
@@ -88,7 +107,7 @@ void Engine::run() {
 
         glm::mat4 model = glm::mat4(1.0f);
         glm::mat4 view = mainCamera->getViewMatrix();
-        glm::mat4 projection = glm::perspective(glm::radians(mainCamera->getFOV()), 1500.0f / 900.0f, mainCamera->getNearPlane() , mainCamera->getFarPlane());
+        glm::mat4 projection = glm::perspective(glm::radians(mainCamera->getFOV()), 1500.0f / 900.0f, mainCamera->getNearPlane(), mainCamera->getFarPlane());
 
         shaderProgram->use();
         shaderProgram->setMat4("model", model);
@@ -97,11 +116,11 @@ void Engine::run() {
 
         processInput();
 
-        /*for (auto& voxel : terrainVoxels) {
-            voxel->draw(*shaderProgram);
-        }*/
+        updateChunksBasedOnPlayerPosition();
 
-        chunkTest->render(shaderProgram);
+        for (auto& chunkPair : activeChunks) {
+            chunkPair.second->render(shaderProgram);
+        }
 
         renderImGui();
 
@@ -169,6 +188,10 @@ void Engine::processInput() {
     qPressedLastFrame = (qState == GLFW_PRESS);
 
     float cameraSpeed = 10.0f * deltaTime;
+
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+        cameraSpeed = 100.0f * deltaTime;
+
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         mainCamera->setPosition(mainCamera->getPosition() + cameraSpeed * mainCamera->getFront());
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)

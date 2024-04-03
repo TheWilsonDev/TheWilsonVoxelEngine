@@ -15,6 +15,7 @@ public:
 
 	void generateChunk();
 	void render(ShaderCompiler* shaderProgram);
+	void generateChunkAt(const glm::ivec2& chunkCoord);
 
 private:
 	Voxel* voxel;
