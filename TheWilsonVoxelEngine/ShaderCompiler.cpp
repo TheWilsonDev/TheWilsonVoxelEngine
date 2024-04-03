@@ -55,10 +55,6 @@ unsigned int ShaderCompiler::compileShader(GLenum type, const std::string& fileP
 void ShaderCompiler::setMat4(const std::string& name, const glm::mat4& mat) const {
     int uniformLoc = glGetUniformLocation(programID, name.c_str());
     glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, &mat[0][0]);
-    /*
-    std::cout << "Uniform 'model' location: " << glGetUniformLocation(programID, "model") << std::endl;
-    std::cout << "Uniform 'view' location: " << glGetUniformLocation(programID, "view") << std::endl;
-    std::cout << "Uniform 'projection' location: " << glGetUniformLocation(programID, "projection") << std::endl;*/
 }
 
 void ShaderCompiler::linkProgram(unsigned int vertexShader, unsigned int fragmentShader) {

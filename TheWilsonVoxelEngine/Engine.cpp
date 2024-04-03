@@ -16,10 +16,11 @@ Engine::Engine() {
         45.0f,                       // FOV
         1500.0f / 900.0f,            // Aspect Ratio
         0.1f,                        // Near clipping plane
-        100.0f,                      // Far clipping plane
+        10000.0f,                      // Far clipping plane
         0.2f
     );
     imguiManager = new ImGuiManager(mainWindow->getGLFWwindow());
+    chunkTest = new Chunk();
 
     firstMouse = true;
     lastX = 1500 / 2.0;
@@ -37,32 +38,35 @@ Engine::Engine() {
         engine->processMouseButton(button, action, mods);
     });
 
+    glfwSetScrollCallback(mainWindow->getGLFWwindow(), [](GLFWwindow* window, double xoffset, double yoffset) {
+        auto engine = static_cast<Engine*>(glfwGetWindowUserPointer(window));
+        engine->processScroll(xoffset, yoffset);
+    });
+
     glfwSetInputMode(mainWindow->getGLFWwindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     glViewport(0, 0, mainWindow->getWidth(), mainWindow->getHeight());
 
     shaderProgram = new ShaderCompiler("vertex_shader.glsl", "fragment_shader.glsl");
 
-    generateTerrain();
+    chunkTest->generateChunk();
 }
 
 void Engine::generateTerrain() {
     noise.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
     noise.SetFrequency(0.01f);
 
-    int terrainWidth = 16;
-    int terrainDepth = 16;
+    int terrainWidth = 100;
+    int terrainDepth = 100;
     float heightMultiplier = 20.0f;
 
     for (int x = 0; x < terrainWidth; ++x) {
         for (int z = 0; z < terrainDepth; ++z) {
             float height = noise.GetNoise((float)x, (float)z) * heightMultiplier;
-            int y = std::round(height);
+            int y = std::floor(height);
             createVoxel(x, y, z);
         }
     }
-
-    //std::cout << "Terrain Voxels Count: " << terrainVoxels.size() << std::endl;
 }
 
 void Engine::createVoxel(int x, int y, int z) {
@@ -84,7 +88,7 @@ void Engine::run() {
 
         glm::mat4 model = glm::mat4(1.0f);
         glm::mat4 view = mainCamera->getViewMatrix();
-        glm::mat4 projection = glm::perspective(glm::radians(45.0f), 1500.0f / 900.0f, 0.1f, 100.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(mainCamera->getFOV()), 1500.0f / 900.0f, mainCamera->getNearPlane() , mainCamera->getFarPlane());
 
         shaderProgram->use();
         shaderProgram->setMat4("model", model);
@@ -93,9 +97,11 @@ void Engine::run() {
 
         processInput();
 
-        for (auto& voxel : terrainVoxels) {
+        /*for (auto& voxel : terrainVoxels) {
             voxel->draw(*shaderProgram);
-        }
+        }*/
+
+        chunkTest->render(shaderProgram);
 
         renderImGui();
 
@@ -204,6 +210,13 @@ void Engine::processMouseButton(int button, int action, int mods) {
     }
 }
 
+void Engine::processScroll(double xoffset, double yoffset) {
+    float sensitivity = 1.0f;
+    float newFov = mainCamera->getFOV() + static_cast<float>(yoffset) * sensitivity;
+
+    mainCamera->setFOV(newFov);
+}
+
 void Engine::toggleCursor() {
     cursorEnabled = !cursorEnabled;
     glfwSetInputMode(mainWindow->getGLFWwindow(), GLFW_CURSOR, cursorEnabled ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
@@ -228,4 +241,5 @@ Engine::~Engine() {
     delete mainCamera;
     delete imguiManager;
     delete shaderProgram;
+    delete chunkTest;
 }

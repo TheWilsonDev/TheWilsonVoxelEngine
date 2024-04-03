@@ -4,6 +4,7 @@
 #include "ImGuiManager.h"
 #include "Camera.h"
 #include "Voxel.h"
+#include "Chunk.h"
 #include "FastNoiseLite.h"
 #include <vector>
 #include <memory>
@@ -18,6 +19,7 @@ public:
 	void processInput();
 	void processMouseMovement(double xpos, double ypos);
 	void processMouseButton(int button, int action, int mods);
+	void processScroll(double xoffset, double yoffset);
 	void renderImGui();
 	void toggleCursor();
 	void toggleImGui();
@@ -29,6 +31,7 @@ private:
 	Camera* mainCamera;
 	ImGuiManager* imguiManager;
 	ShaderCompiler* shaderProgram;
+	Chunk* chunkTest;
 	std::vector<std::unique_ptr<Voxel>> terrainVoxels;
 	FastNoiseLite noise;
 	double lastX, lastY;

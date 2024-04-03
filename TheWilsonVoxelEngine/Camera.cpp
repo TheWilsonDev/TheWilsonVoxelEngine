@@ -16,6 +16,13 @@ void Camera::setPitch(float pitch) {
     updateCameraVectors();
 }
 
+void Camera::setFOV(float newFov) {
+    if (newFov < 10.0f || newFov > 130.0f)
+        return;
+
+    fov = newFov;
+}
+
 void Camera::updateCameraVectors() {
     glm::vec3 newFront;
     newFront.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
