@@ -39,41 +39,33 @@ void Chunk::setupMesh() {
     glBindVertexArray(0);
 }
 
-void Chunk::generateChunk() {
-    noise.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
-    noise.SetFrequency(0.01f);
 
-    for (int x = 0; x < chunkSize; ++x) {
-        for (int z = 0; z < chunkSize; ++z) {
-            float height = noise.GetNoise((float)x, (float)z) * 20.0f;
-            int y = std::round(height);
-            instancePositions.emplace_back(x, y, z);
-        }
-    }
-
-    glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
-    glBufferData(GL_ARRAY_BUFFER, instancePositions.size() * sizeof(glm::vec3), instancePositions.data(), GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-}
-
-void Chunk::generateChunkAt(const glm::ivec2& chunkCoord) {
+void Chunk::generateChunkAt(const glm::ivec2& chunkCoord, bool centered) {
     instancePositions.clear();
 
+    
     int startX = chunkCoord.x * chunkSize;
     int startZ = chunkCoord.y * chunkSize;
+    if (centered) {
+        startX = 0;
+        startZ = 0;
+    }
 
     noise.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
-    noise.SetFrequency(0.01f);
+    noise.SetFrequency(0.05f);
 
     for (int x = 0; x < chunkSize; ++x) {
         for (int z = 0; z < chunkSize; ++z) {
             int worldX = startX + x;
             int worldZ = startZ + z;
 
-            float height = noise.GetNoise(static_cast<float>(worldX), static_cast<float>(worldZ)) * 20.0f;
-            int worldY = std::round(height);
+            float height = noise.GetNoise(static_cast<float>(worldX), static_cast<float>(worldZ)) * 40.0f;
+            int maxHeight = std::round(height);
 
-            instancePositions.emplace_back(worldX, worldY, worldZ);
+            // Generate voxels from the ground up to the maxHeight
+            for (int worldY = -40; worldY <= maxHeight; ++worldY) {
+                instancePositions.emplace_back(worldX, worldY, worldZ);
+            }
         }
     }
 

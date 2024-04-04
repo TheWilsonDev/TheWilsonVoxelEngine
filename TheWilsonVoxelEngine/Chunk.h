@@ -13,9 +13,9 @@ public:
 	Chunk();
 	~Chunk();
 
-	void generateChunk();
 	void render(ShaderCompiler* shaderProgram);
-	void generateChunkAt(const glm::ivec2& chunkCoord);
+	void generateChunkAt(const glm::ivec2& chunkCoord, bool centered);
+	int getInstanceCount() { return instancePositions.size(); }
 
 private:
 	Voxel* voxel;

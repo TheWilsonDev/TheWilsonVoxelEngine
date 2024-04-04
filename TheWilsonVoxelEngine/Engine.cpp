@@ -20,7 +20,6 @@ Engine::Engine() {
         0.2f
     );
     imguiManager = new ImGuiManager(mainWindow->getGLFWwindow());
-    chunkTest = new Chunk();
 
     firstMouse = true;
     lastX = 1500 / 2.0;
@@ -48,8 +47,6 @@ Engine::Engine() {
     glViewport(0, 0, mainWindow->getWidth(), mainWindow->getHeight());
 
     shaderProgram = new ShaderCompiler("vertex_shader.glsl", "fragment_shader.glsl");
-
-    chunkTest->generateChunk();
 }
 
 glm::ivec2 Engine::getPlayerChunkCoordinates() {
@@ -68,12 +65,12 @@ std::vector<glm::ivec2> Engine::calculateRequiredChunksAround(const glm::ivec2& 
 
 void Engine::updateChunksBasedOnPlayerPosition() {
     glm::ivec2 currentPlayerChunk = getPlayerChunkCoordinates();
-    std::vector<glm::ivec2> requiredChunks = calculateRequiredChunksAround(currentPlayerChunk, 6);
+    std::vector<glm::ivec2> requiredChunks = calculateRequiredChunksAround(currentPlayerChunk, 1);
 
     for (const auto& chunkCoords : requiredChunks) {
         if (activeChunks.find(chunkCoords) == activeChunks.end()) {
             auto newChunk = std::make_unique<Chunk>();
-            newChunk->generateChunkAt(chunkCoords);
+            newChunk->generateChunkAt(chunkCoords, true);
             activeChunks[chunkCoords] = std::move(newChunk);
         }
     }
@@ -118,8 +115,10 @@ void Engine::run() {
 
         updateChunksBasedOnPlayerPosition();
 
+        totalVoxels = 0;
         for (auto& chunkPair : activeChunks) {
             chunkPair.second->render(shaderProgram);
+            totalVoxels += chunkPair.second.get()->getInstanceCount();
         }
 
         renderImGui();
@@ -156,6 +155,8 @@ void Engine::renderImGui() {
     ImGui::Text("Frame Time: %.4f seconds (%.2f ms)", deltaTime, deltaTime * 1000.0);
     ImGui::Text("FPS: %.2f", currentFPS);
     ImGui::PlotLines("FPS Graph", fpsHistory, historySize, currentFrame % historySize, nullptr, 0.0f, FLT_MAX, ImVec2(0, 80));
+
+    ImGui::Text("Voxel Count: %d", totalVoxels);
 
     ImGui::End();
 
@@ -264,5 +265,4 @@ Engine::~Engine() {
     delete mainCamera;
     delete imguiManager;
     delete shaderProgram;
-    delete chunkTest;
 }

@@ -38,7 +38,6 @@ private:
 	Camera* mainCamera;
 	ImGuiManager* imguiManager;
 	ShaderCompiler* shaderProgram;
-	Chunk* chunkTest;
 	std::vector<std::unique_ptr<Voxel>> terrainVoxels;
 	FastNoiseLite noise;
 	std::unordered_map<glm::ivec2, std::unique_ptr<Chunk>, IVec2Hash, IVec2Equal> activeChunks;
@@ -47,6 +46,7 @@ private:
 	double deltaTime = 0.0;
 	double lastFrameTime = 0.0;
 	float fpsHistory[100] = {};
+	int totalVoxels;
 	int currentFrame = 0;
 	int historySize = sizeof(fpsHistory) / sizeof(fpsHistory[0]);
 	bool cursorEnabled = false;
