@@ -118,7 +118,7 @@ void Engine::run() {
         totalVoxels = 0;
         for (auto& chunkPair : activeChunks) {
             chunkPair.second->render(shaderProgram);
-            totalVoxels += chunkPair.second.get()->getInstanceCount();
+            totalVoxels += chunkPair.second->getVoxelCount();
         }
 
         renderImGui();
