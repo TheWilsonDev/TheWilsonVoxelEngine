@@ -48,7 +48,7 @@ void Chunk::generateChunkAt(const glm::ivec2& chunkCoord, bool centered) {
             float height = noise.GetNoise(static_cast<float>(worldX), static_cast<float>(worldZ)) * 40.0f;
             int maxHeight = std::round(height);
 
-            for (int worldY = -15; worldY <= maxHeight; ++worldY) {
+            for (int worldY = 0; worldY <= maxHeight; ++worldY) {
                 glm::ivec3 pos(worldX, worldY, worldZ);
                 voxelMap[pos] = true;
             }
