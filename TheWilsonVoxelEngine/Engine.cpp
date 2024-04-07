@@ -46,9 +46,9 @@ Engine::Engine() {
 
     glViewport(0, 0, mainWindow->getWidth(), mainWindow->getHeight());
 
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CCW);
+    //glEnable(GL_CULL_FACE);
+    //glCullFace(GL_BACK);
+    //glFrontFace(GL_CCW);
 
     shaderProgram = new ShaderCompiler("vertex_shader.glsl", "fragment_shader.glsl");
 }
@@ -122,7 +122,7 @@ void Engine::run() {
         totalVoxels = 0;
         for (auto& chunkPair : activeChunks) {
             chunkPair.second->render(shaderProgram);
-            totalVoxels += chunkPair.second->getVoxelCount();
+            //totalVoxels += chunkPair.second->getVoxelCount();
         }
 
         renderImGui();

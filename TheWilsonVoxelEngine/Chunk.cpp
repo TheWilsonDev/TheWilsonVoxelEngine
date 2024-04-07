@@ -30,7 +30,6 @@ void Chunk::setupMesh() {
 }
 
 void Chunk::generateChunkAt(const glm::ivec2& chunkCoord, bool centered) {
-    voxels.clear();
     voxelMap.clear();
 
     int startX = chunkCoord.x * chunkSize;
@@ -55,24 +54,97 @@ void Chunk::generateChunkAt(const glm::ivec2& chunkCoord, bool centered) {
         }
     }
 
+    /*unsigned int vertexCount = 0;
+
     for (const auto& entry : voxelMap) {
         const glm::ivec3& pos = entry.first;
-        auto voxel = std::make_unique<Voxel>();
-        voxel->setPosition(glm::vec3(pos.x, pos.y, pos.z));
 
         for (int i = 0; i < 6; ++i) {
             glm::ivec3 dir = getDirection(i);
             glm::ivec3 neighborPos = pos + dir;
 
             if (voxelMap.find(neighborPos) == voxelMap.end()) {
-                voxel->setFaceExposure(static_cast<VoxelFace>(i), true);
+                addVoxelFaceVertices(vertices, indices, pos, i, vertexCount);
+                vertexCount += 4; 
             }
         }
+    }
 
-        voxel->generateVerticesBasedOnExposure();
-        voxels.push_back(std::move(voxel));
+    combinedMesh.createMesh(vertices, indices);*/
+
+    for (const auto& entry : voxelMap) {
+        const glm::ivec3& pos = entry.first;
+
+        for (int i = 0; i < 6; ++i) {
+            glm::ivec3 dir = getDirection(i);
+            glm::ivec3 neighborPos = pos + dir;
+
+            if (voxelMap.find(neighborPos) == voxelMap.end()) {
+                addVoxelFaceVertices(vertices, pos, i);
+            }
+        }
+    }
+
+    combinedMesh.createMesh(vertices);
+}
+
+//void Chunk::addVoxelFaceVertices(std::vector<glm::vec3>& vertices, std::vector<unsigned int>& indices, const glm::ivec3& pos, int face, unsigned int& vertexCount) {
+//    glm::vec3 cubeVertices[8] = {
+//        glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f),
+//        glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f),
+//        glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 0.0f, 1.0f),
+//        glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 1.0f, 1.0f)
+//    };
+//
+//    unsigned int faceIndices[6][4] = {
+//        {3, 2, 1, 0}, // Top
+//        {4, 5, 6, 7}, // Bottom
+//        {7, 3, 0, 4}, // Left
+//        {1, 2, 6, 5}, // Right
+//        {7, 6, 2, 3}, // Front
+//        {0, 1, 5, 4}  // Back
+//    };
+//
+//    for (int j = 0; j < 4; j++) {
+//        unsigned int vertexIndex = faceIndices[face][j];
+//        vertices.push_back(glm::vec3(pos) + cubeVertices[vertexIndex]);
+//    }
+//
+//    indices.push_back(vertexCount);
+//    indices.push_back(vertexCount + 1);
+//    indices.push_back(vertexCount + 2);
+//    indices.push_back(vertexCount);
+//    indices.push_back(vertexCount + 2);
+//    indices.push_back(vertexCount + 3);
+//
+//    vertexCount += 4;
+//}
+
+void Chunk::addVoxelFaceVertices(std::vector<glm::vec3>& vertices, const glm::ivec3& pos, int face) {
+    glm::vec3 cubeVertices[8] = {
+        glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f),
+        glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f),
+        glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 0.0f, 1.0f),
+        glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 1.0f, 1.0f)
+    };
+
+    // Define vertices for each face, adjusted for counter-clockwise winding order
+    unsigned int faceIndices[6][6] = {
+        // Each face defined by two triangles, thus 6 vertices per face
+        {3, 2, 1, 3, 1, 0}, // Top
+        {4, 5, 6, 4, 6, 7}, // Bottom
+        {7, 6, 2, 7, 2, 3}, // Left
+        {0, 1, 5, 0, 5, 4}, // Right
+        {7, 3, 0, 7, 0, 4}, // Front
+        {1, 2, 6, 1, 6, 5}  // Back
+    };
+
+    for (int i = 0; i < 6; i++) { // Now adding 6 vertices for two triangles per face
+        vertices.push_back(glm::vec3(pos) + cubeVertices[faceIndices[face][i]]);
     }
 }
+
+
 
 glm::ivec3 Chunk::getDirection(int faceIndex) {
     switch (faceIndex) {
@@ -88,7 +160,5 @@ glm::ivec3 Chunk::getDirection(int faceIndex) {
 
 void Chunk::render(ShaderCompiler* shaderProgram) {
     shaderProgram->use();
-    for (auto& voxel : voxels) {
-        voxel->draw(*shaderProgram);
-    }
+    combinedMesh.renderMesh();
 }

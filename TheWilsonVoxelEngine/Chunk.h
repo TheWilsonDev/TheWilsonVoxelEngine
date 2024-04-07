@@ -4,6 +4,7 @@
 #include "FastNoiseLite.h"
 #include "Voxel.h"
 #include "ShaderCompiler.h"
+#include "Mesh.h"
 #include <vector>
 #include <memory>
 #include <functional>
@@ -16,8 +17,12 @@ public:
 
     void render(ShaderCompiler* shaderProgram);
     void generateChunkAt(const glm::ivec2& chunkCoord, bool centered);
-    size_t getVoxelCount() const { return voxels.size(); }
     glm::ivec3 getDirection(int faceIndex);
+
+
+    std::vector<glm::vec3> vertices;
+    std::vector<unsigned int> indices;
+    Mesh combinedMesh;
 
 private:
     struct IVec3Hash {
@@ -31,9 +36,10 @@ private:
         }
     };
     std::unordered_map<glm::ivec3, bool, IVec3Hash> voxelMap;
-    std::vector<std::unique_ptr<Voxel>> voxels;
     FastNoiseLite noise;
     GLuint VAO, VBO;
     int chunkSize;
     void setupMesh();
+    //void addVoxelFaceVertices(std::vector<glm::vec3>& vertices, std::vector<unsigned int>& indices, const glm::ivec3& pos, int face, unsigned int& vertexCount);
+    void addVoxelFaceVertices(std::vector<glm::vec3>& vertices, const glm::ivec3& pos, int face);
 };
