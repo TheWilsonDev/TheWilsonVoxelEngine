@@ -74,7 +74,7 @@ void Engine::updateChunksBasedOnPlayerPosition() {
     for (const auto& chunkCoords : requiredChunks) {
         if (activeChunks.find(chunkCoords) == activeChunks.end()) {
             auto newChunk = std::make_unique<Chunk>();
-            newChunk->generateChunkAt(chunkCoords, true);
+            newChunk->generateChunkAt(chunkCoords, false);
             activeChunks[chunkCoords] = std::move(newChunk);
         }
     }
@@ -92,7 +92,6 @@ void Engine::updateChunksBasedOnPlayerPosition() {
 void Engine::createVoxel(int x, int y, int z) {
     auto voxel = std::make_unique<Voxel>();
     voxel->setPosition(glm::vec3(x, y, z));
-    voxel->init();
     terrainVoxels.push_back(std::move(voxel));
 }
 
