@@ -74,7 +74,7 @@ void Engine::updateChunksBasedOnPlayerPosition() {
     for (const auto& chunkCoords : requiredChunks) {
         if (activeChunks.find(chunkCoords) == activeChunks.end()) {
             auto newChunk = std::make_unique<Chunk>();
-            newChunk->generateChunkAt(chunkCoords, false);
+            newChunk->generateChunkAt(chunkCoords, true);
             activeChunks[chunkCoords] = std::move(newChunk);
         }
     }

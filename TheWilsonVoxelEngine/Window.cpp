@@ -48,7 +48,7 @@ void Window::run() {
 
 void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (action == GLFW_PRESS) {
-        std::cout << "Key Pressed: " << key << std::endl;
+        //std::cout << "Key Pressed: " << key << std::endl;
     }
 }
 
