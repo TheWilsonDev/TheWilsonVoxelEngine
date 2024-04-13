@@ -68,45 +68,6 @@ void Chunk::generateChunkAt(const glm::ivec2& chunkCoord, bool centered) {
     glBindVertexArray(0);
 }
 
-//void Chunk::generateChunkAt(const glm::ivec2& chunkCoord, bool centered) {
-//    vertices.clear();
-//    voxelMap.clear();
-//
-//    int startX = chunkCoord.x * chunkSize;
-//    int startZ = chunkCoord.y * chunkSize;
-//    if (centered) {
-//        startX = -chunkSize / 2;
-//        startZ = -chunkSize / 2;
-//    }
-//
-//    for (int x = 0; x < chunkSize; ++x) {
-//        for (int z = 0; z < chunkSize; ++z) {
-//            for (int y = 0; y < chunkSize; ++y) {
-//                int worldX = startX + x;
-//                int worldZ = startZ + z;
-//                int worldY = y;
-//                glm::ivec3 voxelPos(worldX, worldY, worldZ);
-//                voxelMap[voxelPos] = Voxel();
-//            }
-//        }
-//    }
-//
-//    for (const auto& voxel : voxelMap) {
-//        if (isExposed(voxel.first)) {
-//            addCubeVertices(voxel.first);
-//        }
-//    }
-//
-//    glBindVertexArray(VAO);
-//    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-//    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
-//    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-//    glEnableVertexAttribArray(0);
-//
-//    glBindBuffer(GL_ARRAY_BUFFER, 0);
-//    glBindVertexArray(0);
-//}
-
 bool Chunk::isExposed(const glm::ivec3& pos) {
     static const glm::ivec3 directions[6] = {
         glm::ivec3(1, 0, 0), glm::ivec3(-1, 0, 0),
