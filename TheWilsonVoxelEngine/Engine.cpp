@@ -20,6 +20,7 @@ Engine::Engine() {
         0.2f
     );
     imguiManager = new ImGuiManager(mainWindow->getGLFWwindow());
+    lightPosition = glm::vec3(10.0f, 5.0f, 10.0f);
 
     firstMouse = true;
     lastX = 1500 / 2.0;
@@ -110,6 +111,12 @@ void Engine::run() {
         glm::mat4 projection = glm::perspective(glm::radians(mainCamera->getFOV()), 1500.0f / 900.0f, mainCamera->getNearPlane(), mainCamera->getFarPlane());
 
         shaderProgram->use();
+
+        shaderProgram->setVec3("lightPos", lightPosition);
+        shaderProgram->setVec3("viewPos", mainCamera->getPosition());
+        shaderProgram->setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+        shaderProgram->setVec3("objectColor", glm::vec3(1.0f, 0.9f, 0.75f));
+
         shaderProgram->setMat4("model", model);
         shaderProgram->setMat4("view", view);
         shaderProgram->setMat4("projection", projection);

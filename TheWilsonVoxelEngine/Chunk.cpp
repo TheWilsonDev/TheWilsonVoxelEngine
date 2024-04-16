@@ -92,12 +92,12 @@ void Chunk::addCubeVertices(const glm::ivec3& position) {
     };
 
     static const int faceIndices[6][6] = {
-        {0, 1, 2, 0, 2, 3}, 
-        {5, 4, 7, 5, 7, 6}, 
-        {4, 0, 3, 4, 3, 7}, 
-        {1, 5, 6, 1, 6, 2}, 
-        {3, 2, 6, 3, 6, 7}, 
-        {4, 5, 1, 4, 1, 0}  
+        {0, 1, 2, 0, 2, 3},
+        {5, 4, 7, 5, 7, 6},
+        {4, 0, 3, 4, 3, 7},
+        {1, 5, 6, 1, 6, 2},
+        {3, 2, 6, 3, 6, 7},
+        {4, 5, 1, 4, 1, 0}
     };
 
     for (int i = 0; i < 6; i++) {
@@ -115,7 +115,8 @@ void Chunk::addCubeVertices(const glm::ivec3& position) {
 }
 
 void Chunk::render(ShaderCompiler* shaderProgram) {
-    shaderProgram->use();
+    //shaderProgram->use();
+
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, 0, vertices.size() / 3);
     glBindVertexArray(0);
