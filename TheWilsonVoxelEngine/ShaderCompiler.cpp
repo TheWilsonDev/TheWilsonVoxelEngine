@@ -52,11 +52,6 @@ unsigned int ShaderCompiler::compileShader(GLenum type, const std::string& fileP
     return shader;
 }
 
-void ShaderCompiler::setVec3(const std::string& name, const glm::vec3& value) const {
-    int uniformLoc = glGetUniformLocation(programID, name.c_str());
-    glUniform3f(uniformLoc, value.x, value.y, value.z);
-}
-
 void ShaderCompiler::setMat4(const std::string& name, const glm::mat4& mat) const {
     int uniformLoc = glGetUniformLocation(programID, name.c_str());
     glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, &mat[0][0]);

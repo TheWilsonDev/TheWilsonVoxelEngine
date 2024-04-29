@@ -26,7 +26,6 @@ public:
 	void processScroll(double xoffset, double yoffset);
 	glm::ivec2 getPlayerChunkCoordinates();
 	std::vector<glm::ivec2> calculateRequiredChunksAround(const glm::ivec2& chunkCoord, int radius);
-	glm::vec3 lightPosition;
 	void renderImGui();
 	void toggleCursor();
 	void toggleImGui();
